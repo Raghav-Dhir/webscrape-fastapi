@@ -17,5 +17,5 @@ class ProductScrapeEvent(Model):
 
 data = {
     "asin" : "AMZNIDNUM",
-    "title" : "Mark 12"
+    "title" : "Mark12"
 }
