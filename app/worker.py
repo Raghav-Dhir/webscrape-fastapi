@@ -1,6 +1,6 @@
 from celery import Celery
 from celery.schedules import crontab
-from . import config, db, models
+from . import config, db, models, scraper, schema, crud
 from celery.signals import beat_init, worker_process_init
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
@@ -51,7 +51,15 @@ def list_products():
 
 @celery_app.task
 def scrape_asin(asin: str):
-    print(asin)
+    s = scraper.Scraper(asin=asin, endless_scroll=True)
+    dataset = s.scrape()
+    try: 
+        validated_data = schema.ProductListSchema(**dataset)
+    except:
+        validated_data = None
+    if validated_data is not None:
+        product, _ = crud.create_scrape_event(validated_data.dict())
+        print(asin, product)
 
 @celery_app.task
 def scrape_products():
